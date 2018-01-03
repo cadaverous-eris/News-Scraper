@@ -18,7 +18,7 @@ app.set("view engine", "handlebars");
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
 
 mongoose.Promise = Promise;
-mongoose.connect("mongodb://localhost/news-scraper", {
+mongoose.connect(MONGODB_URI, {
 	useMongoClient: true,
 });
 
