@@ -3,11 +3,11 @@ var exphbs = require("express-handlebars");
 var bodyParser = require("body-parser");
 var mongoose = require("mongoose");
 var request = require("request");
-var cheerio = require("cheerio");
+const cheerio = require("cheerio");
 
-var db = require("./models");
+const db = require("./models");
 
-var PORT = 3000;
+const PORT = process.env.PORT || 3000;
 var app = express();
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -15,9 +15,11 @@ app.use(bodyParser.json());
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+
 mongoose.Promise = Promise;
 mongoose.connect("mongodb://localhost/news-scraper", {
-  useMongoClient: true,
+	useMongoClient: true,
 });
 
 app.get("/", (req, res) => {
