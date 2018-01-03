@@ -19,7 +19,8 @@
 	</head>
 	<body>
 		<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-			<a class="navbar-brand" href="#">News Scraper</a>
+			<a class="navbar-brand" href="/">News Scraper</a>
+			<a id="scrape" class="btn btn-primary" href="#">Scrape For More Articles</a>
 			<!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>-->
@@ -32,5 +33,11 @@
 		<div class="container" id="content">
 			{{{body}}}
 		</div>
+		
+		<script>
+			$("#scrape").on("click", event => {
+				$.get("/scrape").then(response => {if (response === true) location.reload();});
+			});
+		</script>
 	</body>
 </html>

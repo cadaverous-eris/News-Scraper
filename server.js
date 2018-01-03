@@ -22,13 +22,13 @@ mongoose.connect("mongodb://localhost/news-scraper", {
 	useMongoClient: true,
 });
 
-app.get("/", (req, res) => {
+app.get("/scrape", (req, res) => {
 	var url = "https://www.wired.com/most-popular/";
 	
-	request(url, function(error, response, html) {
+	return request(url, function(error, response, html) {
 		var $ = cheerio.load(html);
 		
-		//var articles = [];
+		var articles = [];
 		
 		$("li.archive-item-component").each((i, element) => {
 			let articleElement = $(element);
@@ -41,14 +41,30 @@ app.get("/", (req, res) => {
 			article.desc = info.children("p.archive-item-component__desc").text();
 			article.author = articleElement.children("div.archive-item-component__info").children("div.archive-item-component__byline").children("span").children("div.byline-component--micro").children("span.byline-component__content[itemprop='author']").children("a.byline-component__link").text();
 			
-			db.Article.update({title: article.title}, article, {upsert: true, setDefaultsOnInsert: true}).then(result => {});
-			//articles.push(article);
+			articles.push(article);
+			//db.Article.update({title: article.title}, article, {upsert: true, setDefaultsOnInsert: true}).then(result => {});
 		});
 		
-		db.Article.find({}).then(dbArticles => {
-			//console.log(dbArticles);
-			res.render("index", {articles: dbArticles});
-		});
+		(function syncArticle(i) {
+			if (i < articles.length) {
+				//console.log(articles[i]);
+				db.Article.update({title: articles[i].title}, articles[i], {upsert: true, setDefaultsOnInsert: true}).then(result => {
+					return syncArticle(i + 1);
+				}).catch(err => {
+					console.log(err);
+				});
+			} else {
+				return res.json(true);
+			}
+		})(0);
+	});
+	
+	res.json(false);
+});
+
+app.get("/", (req, res) => {
+	db.Article.find({}).then(dbArticles => {
+		res.render("index", {articles: dbArticles});
 	});
 });
 
