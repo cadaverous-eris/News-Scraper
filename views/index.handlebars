@@ -1,0 +1,85 @@
+{{#each this.articles}}
+	<style>
+		.remove-comment {
+			line-height: 18px;
+			height: 20px;
+			width: 20px;
+			color: white;
+			background: #ff3030;
+			border-radius: 50%;
+			text-align: center;
+			
+			display: inline-block;
+			vertical-align: middle;
+		}
+	</style>
+
+	<div class="card" style="margin: 20px 5px;">
+		<a class="card-link" href="{{this.link}}"><h4 class="card-header">{{this.title}}</h4></a>
+		<div class="card-body">
+			<p class="card-text">{{this.desc}}</p>
+			<p class="text-muted">{{this.author}}</p>
+		</div>
+		<div id="collapse-{{this._id}}" class="collapse" role="tabpanel" data-article="{{this._id}}" data-parent="#content">
+			<div></div>
+			<ul class="list-group list-group-flush">
+			
+			</ul>
+			<div class="card-body">
+				<textarea class="form-control" data-article="{{this._id}}" rows="4" style="width: 100%; resize: none;"></textarea><br>
+				<button class="btn btn-primary submit-comment" style="width: 100%;">Submit Comment</button>
+			</div>
+		</div>
+		<div id="{{this._id}}" class="card-footer" role="tab" style="text-align: center;"><a data-toggle="collapse" href="#collapse-{{this._id}}" aria-controls="collapse-{{this._id}}" role="button" class="card-link">Comments <i class="fa fa-chevron-down" aria-hidden="true"></i></a></div>
+	</div>
+{{/each}}
+
+<script>
+	$('.collapse').collapse({toggle: false});
+
+	$(document).on('hide.bs.collapse', '.collapse', function(event) {
+		$(this).siblings('div.card-footer').children('a.card-link').children('i.fa').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+	});
+	$(document).on('show.bs.collapse', '.collapse', function(event) {
+		$(this).siblings('div.card-footer').children('a.card-link').children('i.fa').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+		
+		$.get("/articles/" + $(this).data("article")).then(article => {
+			let commentList = $(this).children("ul");
+			commentList.empty();
+			
+			if (!article || !article.comments || article.comments.length < 1) return;
+			for (var i = 0; i < article.comments.length; i++) {
+				let row = $("<div>").addClass("row").addClass("justify-content-between");
+				
+				row.append($("<div>").addClass("col-sm").text(article.comments[i].body));
+				row.append($("<div>").addClass("col-auto").append($('<span>').addClass('remove-comment').attr('aria-hidden', "true").data('comment', article.comments[i]._id).html("&times;").on('click', function(event) {
+					$.ajax({
+						url: ("/comments/" + $(this).data("comment")),
+						type: 'delete',
+					}).then(response => {
+						if (response === true) location.reload();
+					});
+				})));
+				
+				let comment = $("<li>").addClass("list-group-item").addClass("comment").append(row);
+				
+				commentList.prepend(comment);
+			}
+		});
+	});
+	
+	$(document).on('click', '.submit-comment', function(event) {
+		let textarea = $(this).siblings("textarea");
+		let article = textarea.data("article");
+		
+		let comment = {body: textarea.val().trim()};
+		console.log(comment);
+		if (comment.body.length > 0) {
+			$.post("/articles/" + article, comment).then(response => {
+				location.reload();
+			});
+		}
+	});
+	
+	
+</script>
